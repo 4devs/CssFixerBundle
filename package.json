@@ -1,0 +1,12 @@
+{
+    "name": "css-fixer-bundle",
+    "version": "0.1.0",
+    "description": "Allows to define npm dependencies",
+    "author": "Victor Melnik <melnikvictorl@gmail.com>",
+    "licence": "MIT",
+    "dependencies": {
+        "csscomb": "3.*"
+    },
+    "private": true,
+    "subdomain": "fdevs"
+}

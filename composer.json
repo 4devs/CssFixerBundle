@@ -1,0 +1,25 @@
+{
+    "name": "fdevs/css-fixer-bundle",
+    "description": "Allows you to check if .css files follow general rules and convention or fix them",
+    "type": "symfony-bundle",
+    "authors": [
+        {
+            "name": "Victor Melnik",
+            "email": "melnikvictorl@gmail.com"
+        }
+    ],
+    "keywords": ["css", "csscomb", "code style", "fdevs"],
+    "license": "MIT",
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.4",
+        "symfony/symfony": "~2.5",
+        "eloquent/composer-npm-bridge": "~2"
+    },
+    "autoload": {
+        "psr-0": {
+            "FDevs\\CssFixerBundle": ""
+        }
+    },
+    "target-dir": "FDevs/CssFixerBundle"
+}
