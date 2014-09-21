@@ -116,6 +116,28 @@ class Configuration implements ConfigurationInterface
                 ->end()
                 ->arrayNode('sort_order')
                     ->info('Set sort order')
+                    ->example('[[margin, padding], [font-weight, font-size]]')
+                    ->prototype('array')
+                        ->prototype('scalar')->end()
+                    ->end()
+                    ->beforeNormalization()
+                        ->always(function ($groups) {
+                            $groups = (array)$groups;
+                            $commonGroup = [];
+                            foreach ($groups as $id => $group) {
+                                if (is_scalar($group)) {
+                                    $commonGroup[] = $group;
+                                    unset($groups[$id]);
+                                }
+                            }
+
+                            if ($commonGroup) {
+                                $groups[] = $commonGroup;
+                            }
+
+                            return array_values($groups);
+                        })
+                    ->end()
                 ->end()
                 ->scalarNode('sort_order_fallback')
                     ->defaultValue('abc')
