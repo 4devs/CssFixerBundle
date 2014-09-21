@@ -47,24 +47,35 @@ class CssFixerCommand extends ContainerAwareCommand
 
         $exitCode = 0;
         if ($paths) {
-            $output->writeln('Starting CssFixer');
             $executable = $this->getContainer()->getParameter('f_devs.css_fixer.executable');
-            $options = ['-c ' . $this->getContainer()->getParameter('f_devs.css_fixer.config_path')];
-
-            if ($input->getOption('verbose')) {
-                $options[] = '-v';
-            }
+            $options = [
+                '-c ' . $this->getContainer()->getParameter('f_devs.css_fixer.config_path'),
+                '-v'
+            ];
+            $fixerMode = 'fix';
 
             if (!$input->getOption('fix')) {
                 $options[] = '-l';
+                $fixerMode = 'lint';
             }
 
+            $output->writeln(sprintf('Starting CssFixer in <info>%s</info> mode', $fixerMode));
             $process = new Process($executable . ' ' . implode(' ', $options) . ' ' . implode(' ', $paths));
             $process->run();
+            $summary = $this->parseFixerOutput($process->getOutput());
 
             if ($input->getOption('verbose')) {
-                $output->writeln($process->getOutput());
+                $output->writeln(implode("\n", $summary['files']));
             }
+
+            $output->writeln(sprintf('Processed files: %d', count($summary['files'])));
+            $output->writeln(sprintf('Bad files: %d', $summary['bad']));
+            $output->writeln(sprintf('Fixed files: %d', $summary['fixed']));
+
+            if ($input->getOption('verbose')) {
+                $output->writeln(sprintf('Time spent: %s', $summary['time']));
+            }
+
             $exitCode = $process->getExitCode();
         } else {
             $output->writeln('Nothing to process');
@@ -73,5 +84,49 @@ class CssFixerCommand extends ContainerAwareCommand
         $output->writeln('Finished');
 
         return $exitCode;
+    }
+
+    /**
+     * @param string $fixerOutput
+     * @return array
+     */
+    private function parseFixerOutput($fixerOutput)
+    {
+        $files = [];
+        $bad = 0;
+        $good = 0;
+        $fixed = 0;
+        $time = '0ms';
+        $lines = preg_split('/\n/', $fixerOutput);
+
+        foreach ($lines as $line) {
+            if (!$line) {
+                continue;
+            }
+
+            if (preg_match('/\.css$/', $line)) {
+                $files[] = $line;
+                if (preg_match('/^!/', $line)) {
+                    $bad += 1;
+                } else {
+                    $good += 1;
+                }
+            }
+        }
+
+        if (preg_match("/(\d+) files? fixed+/", $fixerOutput, $match)) {
+            $fixed = $match[1];
+        }
+
+        if (preg_match("/spent (\d+\w+)/", $fixerOutput, $match)) {
+            $time = $match[1];
+        }
+
+        return [
+            'files' => $files,
+            'fixed' => $fixed,
+            'bad' => $fixed ?: $bad,
+            'time' => $time,
+        ];
     }
 }
